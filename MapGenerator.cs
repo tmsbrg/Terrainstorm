@@ -9,15 +9,15 @@ public class MapGenerator : MonoBehaviour {
     public bool createMesh = true;
 
     MapArea mapArea = null;
-    int width = 12;
-    int height = 3;
+    int width = 8;
+    int height = 12;
 
     Ruleset ruleset;
 
 	// Use this for initialization
 	void Start () {
 
-        mapArea = GenerateMap();
+        mapArea = GenerateMap(new RandomHeightmap(width, height, 0.0f, 1.0f));
 
         if (mapHandler != null) {
             IMapHandler handler = mapHandler.GetComponent<IMapHandler>();
@@ -34,10 +34,8 @@ public class MapGenerator : MonoBehaviour {
         }
 	}
 
-    MapArea GenerateMap() {
-        // TODO
-	    Debug.Log("Build map!");
-        return new MapArea(width, height);
+    MapArea GenerateMap(IInitialMapGenerator generator) {
+        return generator.generate();
     }
 
     void CreateMesh() {
@@ -76,33 +74,33 @@ public class MapGenerator : MonoBehaviour {
         Vector3[] vertices = new Vector3[vertices_num];
 
         // add central vertices
-        for (var y=0; y<height; y++) {
-            for (var x=0; x<width; x++) {
-                vertices[y*width + x] = new Vector3((float)x + 0.5f, 0.0f, (float)y + 0.5f);
+        for (int y=0; y<height; y++) {
+            for (int x=0; x<width; x++) {
+                vertices[y*width + x] = new Vector3((float)x + 0.5f, mapArea.getHeightAt(x, y), (float)y + 0.5f);
             }
         }
 
         int cvertex = height * width; // corner vertices start at this index
 
         // add corner vertices. These have a grid of (width+1, height+1)
-        for (var y=0; y < height + 1; y++) {
-            for (var x=0; x < width + 1; x++) {
-                vertices[cvertex + y*(width+1) + x] = new Vector3((float)x, 0.0f, (float)y);
+        for (int y=0; y < height + 1; y++) {
+            for (int x=0; x < width + 1; x++) {
+                vertices[cvertex + y*(width+1) + x] = new Vector3((float)x, CalculateCornerHeight(x, y, vertices), (float)y);
             }
         }
 
         Vector2[] uv = new Vector2[vertices_num];
 
         // don't care about uv right now
-        for (var i=0; i<vertices_num; i++) {
+        for (int i=0; i<vertices_num; i++) {
             uv[i] = new Vector2(0.0f, 0.0f);
         }
 
         int[] triangles = new int[triangles_num];
 
         // adding triangles
-        for (var y=0; y<height; y++) {
-            for (var x=0; x<width; x++) {
+        for (int y=0; y<height; y++) {
+            for (int x=0; x<width; x++) {
                 int tile_i = y*width + x; // index of the tile we're at
                 int tri_i = tile_i * 4 * 3; // index in the triangle array
                 int upperleft_vertex = cvertex + x + y*(width+1);
@@ -141,6 +139,41 @@ public class MapGenerator : MonoBehaviour {
         mesh.uv = uv;
         mesh.triangles = triangles;
         GetComponent<MeshFilter>().mesh = mesh;
+    }
+
+    float CalculateCornerHeight (int x, int y, Vector3[] vertices) {
+        float?[] tiles = new float?[] {null, null, null, null};
+
+        // get values of tiles around corner
+        if (x - 1 >= 0 && y - 1 >= 0) {
+            tiles[0] = vertices[x-1 + (y-1)*width].y;
+        }
+        if (x < width && y - 1 >= 0) {
+            tiles[1] = vertices[x + (y-1)*width].y;
+        }
+        if (x - 1 >= 0 && y < height) {
+            tiles[2] = vertices[x-1 + y*width].y;
+        }
+        if (x < width && y < height) {
+            tiles[3] = vertices[x + y*width].y;
+        }
+
+        // get average value
+        float sum = 0;
+        float div = 0;
+        foreach (var v in tiles) {
+            if (v.HasValue) {
+                sum += v.Value;
+                div += 1;
+            }
+        }
+
+        // if outside of grid, default to 0.0f
+        if (div != 0) {
+            return sum / div;
+        } else {
+            return 0.0f;
+        }
     }
 
 	// Update is called once per frame
