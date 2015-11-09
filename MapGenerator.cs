@@ -8,15 +8,17 @@ public class MapGenerator : MonoBehaviour {
     public GameObject mapHandler = null;
     public bool createMesh = true;
 
-    MapArea mapArea = null;
+    public bool generateMapInRuntime = true;
+
+    [UnityEngine.SerializeField] // need this to make mapArea not reset when starting the scene
+    MapArea mapArea;
     int width = 8;
     int height = 12;
 
     Ruleset ruleset;
 
-	// Use this for initialization
 	void Start () {
-        if (mapArea == null) {
+        if (generateMapInRuntime == true) {
             RegenerateMap();
         }
     }
