@@ -16,8 +16,13 @@ public class MapGenerator : MonoBehaviour {
 
 	// Use this for initialization
 	void Start () {
+        if (mapArea == null) {
+            RegenerateMap();
+        }
+    }
 
-        mapArea = GenerateMap(new RandomHeightmap(width, height, 0.0f, 1.0f));
+    public void RegenerateMap() {
+        mapArea = GenerateMap(new RandomHeightmap(width, height, 0.0f, 2.0f));
 
         if (mapHandler != null) {
             IMapHandler handler = mapHandler.GetComponent<IMapHandler>();
@@ -30,18 +35,36 @@ public class MapGenerator : MonoBehaviour {
         }
 
         if (createMesh) {
-            CreateMesh();
+            GetComponent<MeshFilter>().mesh = CreateMesh(width, height);
         }
 	}
+
+    public Mesh DeleteMap() {
+        if (mapHandler != null) {
+            IMapHandler handler = mapHandler.GetComponent<IMapHandler>();
+
+            if (handler != null) {
+                handler.OnMapDelete(mapArea);
+            } else {
+                Debug.LogWarning("map handler lacks IMapHandler script");
+            }
+        }
+
+        mapArea = null;
+        MeshFilter filter = GetComponent<MeshFilter>();
+        Mesh mesh = filter.sharedMesh;
+        filter.mesh = null;
+        return mesh;
+    }
 
     MapArea GenerateMap(IInitialMapGenerator generator) {
         return generator.generate();
     }
 
-    void CreateMesh() {
+    Mesh CreateMesh(int width, int height) {
 
         if (width == 0 || height == 0) {
-            return; // nothing to generate!
+            return new Mesh(); // nothing to generate!
         }
 
         // we're making a vertex grid like this
@@ -85,7 +108,8 @@ public class MapGenerator : MonoBehaviour {
         // add corner vertices. These have a grid of (width+1, height+1)
         for (int y=0; y < height + 1; y++) {
             for (int x=0; x < width + 1; x++) {
-                vertices[cvertex + y*(width+1) + x] = new Vector3((float)x, CalculateCornerHeight(x, y, vertices), (float)y);
+                float z = CalculateCornerHeight(x, y, vertices, width, height);
+                vertices[cvertex + y*(width+1) + x] = new Vector3((float)x, z, (float)y);
             }
         }
 
@@ -138,10 +162,10 @@ public class MapGenerator : MonoBehaviour {
         mesh.vertices = vertices;
         mesh.uv = uv;
         mesh.triangles = triangles;
-        GetComponent<MeshFilter>().mesh = mesh;
+        return mesh;
     }
 
-    float CalculateCornerHeight (int x, int y, Vector3[] vertices) {
+    float CalculateCornerHeight (int x, int y, Vector3[] vertices, int width, int height) {
         float?[] tiles = new float?[] {null, null, null, null};
 
         // get values of tiles around corner
@@ -178,6 +202,8 @@ public class MapGenerator : MonoBehaviour {
 
 	// Update is called once per frame
 	void Update () {
-	
+	    if (Input.GetKeyUp(KeyCode.Space)) {
+            RegenerateMap();
+        }
 	}
 }
