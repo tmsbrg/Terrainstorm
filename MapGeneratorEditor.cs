@@ -8,6 +8,12 @@ public class MapGeneratorEditor : Editor {
     public override void OnInspectorGUI() {
         DrawDefaultInspector();
         MapGenerator generator = (MapGenerator) target;
+
+        generator.InitRuleset();
+
+        if (GUILayout.Button("Reset ruleset")) {
+            generator.ResetRuleset();
+        }
         if (GUILayout.Button("Generate statically")) {
             generator.RegenerateMap();
         }

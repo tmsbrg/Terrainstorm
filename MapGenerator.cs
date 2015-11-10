@@ -10,21 +10,60 @@ public class MapGenerator : MonoBehaviour {
 
     public bool generateMapInRuntime = true;
 
+
     [UnityEngine.SerializeField] // need this to make mapArea not reset when starting the scene
     MapArea mapArea;
+
+    [UnityEngine.SerializeField]
+    Ruleset ruleset;
+
     int width = 8;
     int height = 12;
 
-    Ruleset ruleset;
-
 	void Start () {
+        InitRuleset();
         if (generateMapInRuntime == true) {
             RegenerateMap();
         }
     }
 
+    IInitialMapGenerator DefaultGenerator() {
+        return new RandomHeightmap(width, height, 0.0f, 2.0f);
+    }
+
+    // make sure the ruleset is never null
+    public void InitRuleset() {
+        if (ruleset != null) {
+            return;
+        }
+
+        ResetRuleset();
+    }
+
+    public void ResetRuleset() {
+        ruleset = new Ruleset(DefaultGenerator());
+    }
+
+    public void SetGenerator(IInitialMapGenerator g) {
+        ruleset.generator = g;
+    }
+
+    public void AddPass(IMapPass p) {
+        ruleset.passes.Add(p);
+    }
+
+    public void RemovePass(int i) {
+        ruleset.passes.RemoveAt(i);
+    }
+
+    public void MovePass(int from, int to) {
+        IMapPass pass = ruleset.passes[from];
+        ruleset.passes.RemoveAt(from);
+        ruleset.passes.Insert(to, pass);
+    }
+
     public void RegenerateMap() {
-        mapArea = GenerateMap(new RandomHeightmap(width, height, 0.0f, 2.0f));
+        mapArea = ruleset.generate();
 
         if (mapHandler != null) {
             IMapHandler handler = mapHandler.GetComponent<IMapHandler>();
