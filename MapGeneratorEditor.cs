@@ -11,6 +11,11 @@ public class MapGeneratorEditor : Editor {
 
         generator.InitRuleset();
 
+        generator.SetSize(
+            EditorGUILayout.IntField("Width", generator.GetWidth()),
+            EditorGUILayout.IntField("Height", generator.GetHeight())
+        );
+
         if (GUILayout.Button("Reset ruleset")) {
             generator.ResetRuleset();
         }

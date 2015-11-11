@@ -28,7 +28,12 @@ public class MapGenerator : MonoBehaviour, ISerializationCallbackReceiver {
 
     Ruleset ruleset;
 
+    [HideInInspector]
+    [UnityEngine.SerializeField]
     int width = 8;
+
+    [HideInInspector]
+    [UnityEngine.SerializeField]
     int height = 12;
 
 	void Start () {
@@ -71,6 +76,26 @@ public class MapGenerator : MonoBehaviour, ISerializationCallbackReceiver {
         IMapPass pass = ruleset.passes[from];
         ruleset.passes.RemoveAt(from);
         ruleset.passes.Insert(to, pass);
+    }
+
+    public int GetWidth() {
+        return width;
+    }
+
+    public int GetHeight() {
+        return height;
+    }
+
+    public void SetSize(int x, int y) {
+        if (x == width && y == height) {
+            return;
+        }
+
+        width = x;
+        height = y;
+
+        ruleset.generator.width = x;
+        ruleset.generator.height = y;
     }
 
     public void RegenerateMap() {
@@ -271,7 +296,7 @@ public class MapGenerator : MonoBehaviour, ISerializationCallbackReceiver {
         passes_serialized.Clear();
         foreach (var pass in ruleset.passes) {
             using (var stream = new MemoryStream()) {
-                serializer.Serialize(stream, ruleset.generator);
+                serializer.Serialize(stream, pass);
                 stream.Flush();
                 passes_serialized.Add(Convert.ToBase64String(stream.ToArray()));
             }
