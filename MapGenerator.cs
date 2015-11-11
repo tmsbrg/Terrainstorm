@@ -1,20 +1,31 @@
+using System.Runtime.Serialization.Formatters.Binary;
+using System;
+using System.IO;
+using System.Collections.Generic;
 using UnityEngine;
 using libmapgen;
 
 [RequireComponent (typeof (MeshFilter))]
 [RequireComponent (typeof (MeshRenderer))]
-public class MapGenerator : MonoBehaviour {
+public class MapGenerator : MonoBehaviour, ISerializationCallbackReceiver {
 
     public GameObject mapHandler = null;
     public bool createMesh = true;
 
     public bool generateMapInRuntime = true;
 
+    BinaryFormatter serializer = new BinaryFormatter(); // our own serializer for the ruleset!
+
+    // ruleset values - serialized
+    [UnityEngine.SerializeField]
+    string generator_serialized;
+
+    [UnityEngine.SerializeField]
+    List<string> passes_serialized;
 
     [UnityEngine.SerializeField] // need this to make mapArea not reset when starting the scene
     MapArea mapArea;
 
-    [UnityEngine.SerializeField]
     Ruleset ruleset;
 
     int width = 8;
@@ -247,4 +258,38 @@ public class MapGenerator : MonoBehaviour {
             RegenerateMap();
         }
 	}
+
+    //TODO: reuse MemoryStream?
+
+    public void OnBeforeSerialize() {
+        using (var stream = new MemoryStream()) {
+            serializer.Serialize(stream, ruleset.generator);
+            stream.Flush();
+            generator_serialized = Convert.ToBase64String(stream.ToArray());
+        }
+
+        passes_serialized.Clear();
+        foreach (var pass in ruleset.passes) {
+            using (var stream = new MemoryStream()) {
+                serializer.Serialize(stream, ruleset.generator);
+                stream.Flush();
+                passes_serialized.Add(Convert.ToBase64String(stream.ToArray()));
+            }
+        }
+    }
+
+    public void OnAfterDeserialize() {
+        ruleset = new Ruleset();
+        byte[] bytes = Convert.FromBase64String(generator_serialized);
+        using (var stream = new MemoryStream(bytes)) {
+            ruleset.generator = (IInitialMapGenerator)serializer.Deserialize(stream);
+        }
+        ruleset.passes.Capacity = passes_serialized.Count;
+        foreach(var pass_serialized in passes_serialized) {
+            bytes = Convert.FromBase64String(pass_serialized);
+            using (var stream = new MemoryStream(bytes)) {
+                ruleset.passes.Add((IMapPass)serializer.Deserialize(stream));
+            }
+        }
+    }
 }
