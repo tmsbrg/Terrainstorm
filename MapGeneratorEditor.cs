@@ -1,6 +1,6 @@
 using UnityEngine;
 using UnityEditor;
-using System.Collections;
+using libmapgen;
 
 [CustomEditor (typeof(MapGenerator))]
 public class MapGeneratorEditor : Editor {
@@ -19,6 +19,11 @@ public class MapGeneratorEditor : Editor {
         if (GUILayout.Button("Reset ruleset")) {
             generator.ResetRuleset();
         }
+
+        foreach (var pass in PassesManager.knownMapPasses) {
+            EditorGUILayout.LabelField(pass.Name);
+        }
+
         if (GUILayout.Button("Generate statically")) {
             generator.RegenerateMap();
         }

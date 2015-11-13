@@ -17,9 +17,11 @@ public class MapGenerator : MonoBehaviour, ISerializationCallbackReceiver {
     BinaryFormatter serializer = new BinaryFormatter(); // our own serializer for the ruleset!
 
     // ruleset values - serialized
+    [HideInInspector]
     [UnityEngine.SerializeField]
     string generator_serialized;
 
+    [HideInInspector]
     [UnityEngine.SerializeField]
     List<string> passes_serialized;
 
@@ -209,7 +211,7 @@ public class MapGenerator : MonoBehaviour, ISerializationCallbackReceiver {
                 int lowerleft_vertex = upperleft_vertex + width+1;
                 int lowerright_vertex = upperleft_vertex + 1 + width+1;
 
-                // triangle 1 TODO: Fix broken tile_i placement. WTF is going on!?
+                // triangle 1
                 triangles[tri_i] = tile_i; // central vertex
                 triangles[tri_i+1] = upperright_vertex;
                 triangles[tri_i+2] = upperleft_vertex;
