@@ -20,8 +20,9 @@ public class MapGeneratorEditor : Editor {
             generator.ResetRuleset();
         }
 
-        foreach (var pass in PassesManager.knownMapPasses) {
-            EditorGUILayout.LabelField(pass.Name);
+        int len = PassesManager.GetPassCount();
+        for (int i = 0; i < len; i++) {
+            EditorGUILayout.LabelField(PassesManager.GetPassName(i));
         }
 
         if (GUILayout.Button("Generate statically")) {

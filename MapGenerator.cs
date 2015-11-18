@@ -25,6 +25,7 @@ public class MapGenerator : MonoBehaviour, ISerializationCallbackReceiver {
     [UnityEngine.SerializeField]
     List<string> passes_serialized;
 
+    [HideInInspector]
     [UnityEngine.SerializeField] // need this to make mapArea not reset when starting the scene
     MapArea mapArea;
 
@@ -113,6 +114,7 @@ public class MapGenerator : MonoBehaviour, ISerializationCallbackReceiver {
             }
         }
 
+        // TODO: remove new mesh when creating new map without createMesh
         if (createMesh) {
             GetComponent<MeshFilter>().mesh = CreateMesh(width, height);
         }
