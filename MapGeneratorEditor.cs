@@ -20,10 +20,14 @@ public class MapGeneratorEditor : Editor {
             generator.ResetRuleset();
         }
 
-        int len = PassesManager.GetPassCount();
-        for (int i = 0; i < len; i++) {
-            EditorGUILayout.LabelField(PassesManager.GetPassName(i));
+        EditorGUILayout.Space();
+
+        int? i = PassesManager.SelectPass();
+        if (i.HasValue) {
+            Debug.Log(PassesManager.GetPassName(i.Value));
         }
+
+        EditorGUILayout.Space();
 
         if (GUILayout.Button("Generate statically")) {
             generator.RegenerateMap();
