@@ -22,9 +22,19 @@ public class MapGeneratorEditor : Editor {
 
         EditorGUILayout.Space();
 
-        int? i = PassesManager.SelectPass();
-        if (i.HasValue) {
-            Debug.Log(PassesManager.GetPassName(i.Value));
+        int len = generator.GetPassCount();
+        for (int i = 0; i < len; i++) {
+            EditorGUILayout.Space();
+            EditorGUILayout.LabelField(generator.GetPassName(i));
+            generator.GetPass(i).Draw();
+            EditorGUILayout.Space();
+        }
+
+        EditorGUILayout.Space();
+
+        int? pass = PassesManager.SelectPass();
+        if (pass.HasValue) {
+            generator.AddPass(PassesManager.CreatePass(pass.Value), PassesManager.GetPassName(pass.Value));
         }
 
         EditorGUILayout.Space();

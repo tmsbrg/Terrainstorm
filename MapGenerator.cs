@@ -33,6 +33,10 @@ public class MapGenerator : MonoBehaviour, ISerializationCallbackReceiver {
 
     [HideInInspector]
     [UnityEngine.SerializeField]
+    List<string> pass_names;
+
+    [HideInInspector]
+    [UnityEngine.SerializeField]
     int width = 8;
 
     [HideInInspector]
@@ -61,24 +65,44 @@ public class MapGenerator : MonoBehaviour, ISerializationCallbackReceiver {
 
     public void ResetRuleset() {
         ruleset = new Ruleset(DefaultGenerator());
+        pass_names = new List<string>();
     }
 
     public void SetGenerator(IInitialMapGenerator g) {
         ruleset.generator = g;
     }
 
-    public void AddPass(IMapPass p) {
+    public int GetPassCount() {
+        return ruleset.passes.Count;
+    }
+
+    public string GetPassName(int i) {
+        return pass_names[i];
+    }
+
+    public IMapPassEditor GetPass(int i) {
+        return (IMapPassEditor)ruleset.passes[i];
+    }
+
+    public void AddPass(IMapPassEditor p, string name) {
         ruleset.passes.Add(p);
+        pass_names.Add(name);
     }
 
     public void RemovePass(int i) {
         ruleset.passes.RemoveAt(i);
+        pass_names.RemoveAt(i);
     }
 
     public void MovePass(int from, int to) {
-        IMapPass pass = ruleset.passes[from];
+        IMapPassEditor pass = (IMapPassEditor)ruleset.passes[from];
+        string name = pass_names[from];
+
         ruleset.passes.RemoveAt(from);
+        pass_names.RemoveAt(from);
+
         ruleset.passes.Insert(to, pass);
+        pass_names.Insert(to, name);
     }
 
     public int GetWidth() {
@@ -142,6 +166,7 @@ public class MapGenerator : MonoBehaviour, ISerializationCallbackReceiver {
         return generator.generate();
     }
 
+    // TODO: factor creating a mesh into its own class
     Mesh CreateMesh(int width, int height) {
 
         if (width == 0 || height == 0) {
@@ -317,7 +342,7 @@ public class MapGenerator : MonoBehaviour, ISerializationCallbackReceiver {
         foreach(var pass_serialized in passes_serialized) {
             bytes = Convert.FromBase64String(pass_serialized);
             using (var stream = new MemoryStream(bytes)) {
-                ruleset.passes.Add((IMapPass)serializer.Deserialize(stream));
+                ruleset.passes.Add((IMapPassEditor)serializer.Deserialize(stream));
             }
         }
     }
