@@ -4,6 +4,6 @@ using libmapgen;
 
 [System.Serializable()]
 public class DummyPassEditor : DummyPass, IMapPassEditor {
-    public void Draw() {
+    public void Draw(MapContext context) {
     }
 }

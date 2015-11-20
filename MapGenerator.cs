@@ -14,6 +14,8 @@ public class MapGenerator : MonoBehaviour, ISerializationCallbackReceiver {
 
     public bool generateMapInRuntime = true;
 
+    MapContext context = new MapContext();
+
     BinaryFormatter serializer = new BinaryFormatter(); // our own serializer for the ruleset!
 
     // ruleset values - serialized
@@ -43,6 +45,14 @@ public class MapGenerator : MonoBehaviour, ISerializationCallbackReceiver {
     [UnityEngine.SerializeField]
     int height = 12;
 
+    [HideInInspector]
+    [UnityEngine.SerializeField]
+    float min_h = 0.0f;
+
+    [HideInInspector]
+    [UnityEngine.SerializeField]
+    float max_h = 2.0f;
+
 	void Start () {
         InitRuleset();
         if (generateMapInRuntime == true) {
@@ -51,7 +61,7 @@ public class MapGenerator : MonoBehaviour, ISerializationCallbackReceiver {
     }
 
     IInitialMapGenerator DefaultGenerator() {
-        return new RandomHeightmap(width, height, 0.0f, 2.0f);
+        return new RandomHeightmap(width, height, min_h, max_h);
     }
 
     // make sure the ruleset is never null
@@ -103,6 +113,14 @@ public class MapGenerator : MonoBehaviour, ISerializationCallbackReceiver {
 
         ruleset.passes.Insert(to, pass);
         pass_names.Insert(to, name);
+    }
+
+    public MapContext GetMapContext() {
+        context.width = width;
+        context.height = height;
+        context.min_h = min_h;
+        context.max_h = max_h;
+        return context;
     }
 
     public int GetWidth() {
@@ -160,10 +178,6 @@ public class MapGenerator : MonoBehaviour, ISerializationCallbackReceiver {
         Mesh mesh = filter.sharedMesh;
         filter.mesh = null;
         return mesh;
-    }
-
-    MapArea GenerateMap(IInitialMapGenerator generator) {
-        return generator.generate();
     }
 
     // TODO: factor creating a mesh into its own class
@@ -313,7 +327,7 @@ public class MapGenerator : MonoBehaviour, ISerializationCallbackReceiver {
         }
 	}
 
-    //TODO: reuse MemoryStream?
+    //TODO: reuse MemoryStream? Don't need to convert bytes to base64string?
 
     public void OnBeforeSerialize() {
         using (var stream = new MemoryStream()) {

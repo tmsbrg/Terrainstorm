@@ -22,11 +22,12 @@ public class MapGeneratorEditor : Editor {
 
         EditorGUILayout.Space();
 
+        MapContext context = generator.GetMapContext();
         int len = generator.GetPassCount();
         for (int i = 0; i < len; i++) {
             EditorGUILayout.Space();
             EditorGUILayout.LabelField(generator.GetPassName(i));
-            generator.GetPass(i).Draw();
+            generator.GetPass(i).Draw(context);
             EditorGUILayout.Space();
         }
 

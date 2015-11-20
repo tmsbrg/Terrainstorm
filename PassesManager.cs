@@ -47,6 +47,7 @@ public static class PassesManager {
 
     public static void AddDefaultPasses() {
         AddPass(delegate { return new DummyPassEditor(); }, "Dummy");
+        AddPass(delegate { return new FlattenPassEditor(); }, "Flatten");
     }
 
     public static void AddPass(PassGenerator pass, string name) {
